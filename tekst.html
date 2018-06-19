@@ -1,0 +1,52 @@
+<li>Napisati u Matlabu izraz za DTFT prema analitičkom izrazu dobivenom u 1) dijelu rješenja zadatka iz pripreme. Označiti DTFT npr. imenom Xs. Za imaginarnu jedinicu $\sqrt{−1}$ uzeti j. Koristiti bilo funkcije $sin( )$ i $cos( )$, bilo $exp( )$. Imati u vidu da pošto se u izrazu za $Xs$ kao varijabla pojavljuje vektor (s obzirom da se radi o DTFT-u to je vektor s frekvencijama $om$), sam $Xs$ je vektor iste veličine s vrijednostima DTFT-a za svaki element vektora $om$. </li>
+        <li>Izračunati amplitudni i fazni spektar <b>na temelju DFTF-a</b> $Xs$ korištenjem Matlab funkcija $abs( )$ (za amplitudni) i $angle( )$ (za fazni spektar). Osim toga izračunati realni i
+            imaginarni dio spektra Matlab funkcijama $real( )$ i $imag( )$. </li>
+        <li>Broj točaka $N$ u koliko se izračunava DFT unijeti korištenjem naredbe $input$. Kod testiranja, može se odabrati $N=4$. Napraviti vektor $k$ s indeksima DFT-a u rasponu $0 \leq k \leq N-1$.</li>
+        <li>Prema dijelu rješenja zadatka iz pripreme pod 2)  ealizirati u Pythonu diskretni niz $x_D[n]$ koji predstavlja ulaz u DFT, a dobiven je iz $x[n]$. Potrebni broj nula do ukupnih $N$ točaka ostvariti pomoću naredbe $array = [0] * (N-3)$ (originalni niz ima 3 uzorka) te ih ostaviti na pravo mjesto u vektoru.</li>
+        <li>Izračunati DFT korištenjem naredbe $fft(x_D,N)$ koja izračunava DFT u $N$ točaka bilo pomoću učinkovitog FFT postupka ako je $N$ potencija broja 2, bilo normalno na manje učinkovit način ako je $N$ neki drugi broj.</li>
+        <li>Korištenjem istih naredbi kao u točki c) izračunati  amplitudu i fazu te realni i imaginarni dio <b>DFT uzoraka.</b></li>
+        <li>Slijede naredbe za prikaz. <b>Prije svake slike</b> pozvati funkciju $figure()$ za otvaranje novog prikaza. Na <b>prvoj slici </b>prikazati niz $x_D$ pomoću naredbe $stem()$ uz odgovarajuće indekse $n=[0:N-1]$.</li>
+        <li>Na <b>drugoj slici</b> pomoću naredbe $subplot$ (kojom se prikazuje više odvojenih grafova na jednoj slici) prikazati amplitudu i fazu DTFT-a i DFT uzoraka na način kako slijedi. Kod prikaza najprije sa $subplot(211)$ pristupiti <b>prvom (gornjem) grafu</b>. Korištenjem naredbe oblika $plot(X1,Y1,'-',X2,Y2,'o')$ na grafu prikazati <b>amplitudu DTFT-a punom linijom ('-') te amplitudu DFT-a simbolom ('o')</b>. Os apscisa za DTFT je vektor $om$, a za DFT bi trebao biti vektor $k$. Međutim, da bi obje amplitudne karakteristike mogli prikazati na istom grafu što želimo učiniti, moramo vrijednosti indeksa DFT-a $k$, $0\leq k \leq N-1$ prikazati kao funkciju frekvencije $om$, $0 \leq \omega  \leq 2\pi$ , tj. kao $k*2*pi/N$. Broj točaka se naravno ne mijenja. Sa $set\_ylabel('staviti_text')$ označiti y-os ovog grafa da se zna što prikazuje. Pristupiti zatim sa $subplot(212)$ <b>donjem grafu</b> i na analogan način prikazati <b>faze DTFT-a i DFT uzoraka</b>. Na kraju izgenerirati naslov za cijelu sliku koji ispiše
+vrijednosti korištenih $K$ i $N$ . Za to se koristi naredba <b>$suptitle()$</b>;, koja će vrijednosti K i N ubaciti u string str, a zatim taj string treba postaviti na sliku naredbom $title(str)$.</li>
+<li>Analogno prethodnom koraku, na <b>trećoj slici</b> na isti način kao pod stavkom i) prikazati <b>realne i imaginarne dijelove DTFT-a i DFT uzoraka</b>. </li></ol>
+    </li>
+    <li>Izvesti program uz $N=4$ i promotriti dobivene prikaze. Zatim izvesti program uz $N=16$. Što se promijenilo sa prikazom DFT-a?
+    $$$$
+    Vizuelno provjeriti da li za DFT (kao i za DTFT) vrijede svojstva realnog niza opisana u stavci I. teoretskog dijela vježbe. Kako moraju izgledati amplituda, faza, te realni i imaginarni dio DFT-a s obzirom na indeks 0?
+    $$$$
+    Izvesti program uz $N=1024$. Sjetiti se da je DTFT prikazan također u $N=1024$ točke. Kako sada izgledaju prikazi? Čemu bi općenito težio DFT kada bi se broj uzoraka povećavao do beskonačnosti?
+    $$$$
+    </li>
+<h4>PYTHON PROGRAM ZA IZRAČUNAVANJE DFT-A KOSINUSNOG NIZA</h4>
+    <li>Napisati Python program (skriptu) kojim se izračunava DFT beskonačno periodičnog, vremenski diskretnog kosinusnog niza $\tilde{x}[n]=cos(\omega_0 n)=cos(2\pi m/P\cdot n)$, u $N$ točaka gdje varijabla $m$ može poprimiti vrijednosti $0 \leq m \leq  P/2-1$, a $P$ je osnovni period niza. <b>Teoretska podloga dana je u stavci V. teoretskog dijela vježbe</b>. Raditi u skladu s uputama koje slijede.
+    <ol type="a"> <li>Frekvencija kosinusnog niza $\omega_0$ neka je definirana preko brojeva $P$ i $m$, kako se vidi iz gornjeg izraza za $\tilde{x}[n]$. Ostvariti unos $P$ i $m$ korištenjem naredbe $input$.</li>
+    <li>Da bi se mogao raditi DFT, beskonačni niz treba ograničiti u vremenu na dužinu $L$. To se izvodi primjenom vremenskog otvora, a u ovom zadatku koristit će se najjednostavniji, pravokutni otvor. Broj $L$, te broj točaka $N$ u koliko se izračunava DFT unijeti korištenjem
+naredbe $input$. Realizirati vektor $n$ s indeksima vremenskog niza, $0 \leq n \leq L-1$ te vektor $k$ s indeksima DFT-a, $0 \leq k \leq N-1$.</li>
+<li>Izračunati skraćeni niz od $\tilde{x}[n]$ u $L$ točaka, $x_L[n]$ , uz indekse u vektoru $n$. S obzirom da se koristi pravokutni otvor dovoljno je samo izračunati niz za $L$ indeksa. Da je korišten neki drugi tip otvora, trebalo bi pomnožiti uzorke signala i otvora.</li>
+<li>Izračunati DFT niza $x_L[n]$ u N točaka uz indekse u vektoru $k$.</li>
+<li>Izračunati amplitudu, fazu, te realni i imaginarni dio uzoraka DFT-a.</li>
+<li>Na <b>prvoj slici</b> (kao i do sada prethodno pozvati naredbu $figure()$) prikazati skraćeni kosinusni niz $x_L[n]$ naredbe $stem()$ uz odgovarajuće vremenske indekse. </li>
+<li>Analogno prikazima u programu iz 1. zadatka, naredbom $subplot()$ prikazati na <b>drugoj slici amplitudu i fazu DFT-a</b>, a na <b>trećoj realni i imaginarni dio DFT</b>. Obzirom da treba prikazati samo uzorke DFT-a, zamijeniti plot naredbu, naredbom $stem$. U naslovu slike neka su ispisane vrijednost korištenih $N$, $L$ i $m$. </li>
+    </ol>
+    <li>Izvesti program uz slijedeće parametre: <b>$P=L=N=10$</b>, <b>$m=1$</b> i promotriti slike. Nakon toga izvesti program uz iste $P$, $L$ i $N$, ali za <b>$m$ odabirati redom 2 pa 5</b>. Svaki put se
+generiraju po tri nove slike. <br>
+Proučiti i usporediti slike koje prikazuju diskretni niz. Zatim proučiti slike koje prikazuju pripadne amplitude DFT uzoraka. Na koji način izgled amplitude DFT-a ovisi o broju $m$? Koje je značenje broja $m$ u smislu periodičnosti diskretnog niza na $L$ uzoraka? 
+
+$$$$
+
+Zatvoriti sve postojeće slike naredbom <b>$close all$</b>. Izvesti program uz parametre: $P=L=N=10$, $m=1$. Pogledati diskretni niz. U glavi ga periodizirajte. Kakav je izgled tog periodiziranog niza s obzirom na simetričnost oko ishodišta? Pogledati amplitude i faze te
+realni i imaginarni dio DFT uzoraka s obzirom na simetričnost (misli se na simetričnost oko ishodišta – vidjeti svojstvo DFT-a pod II). Obratiti pažnju na veličine na y-osi. Jako male vrijednosti ($<10^{-13}$) ukazuju na to da se u stvari radi o vrijednostima koje bi trebale biti jednake nula, ali to nisu zbog numeričkih pogrešaka prilikom računanja. Ako su dakle bilo realni bilo imaginarni ili čak oba dijela DFT-a veoma mali brojevi, fazna vrijednost koja se izračunava na temelju njih nema smisla te se u prikazima ponaša nepredvidivo. 
+
+$$$$
+
+Izvesti sada program još uz $N=20$ i $N=40$, a ostale parametre zadržati istima i usporediti pripadne amplitude DFT uzoraka. Kako to da amplituda DFT-a uz veći $N$ ima uzorke koje ne očekujemo s obzirom na postojanje samo jedne harmonijske komponente na frekvenciji $\omega_0$?
+Što se događa povećavanjem broja uzoraka u kojima se radi DFT? Zašto se spektar signala ne sastoji samo od dva Diracova impulsa? 
+
+$$$$
+
+Zatvoriti sve postojeće slike. Izvesti program uz parametre: $P=L=N=10$, $m=1.4$, te promotriti dobivene slike. Kada $m$ nije cijeli broj, a ostali parametri su jednaki, to znači da na tom broju uzoraka nema cijeli broj perioda kosinusa. Kako se to odražava na izgled amplitude i faze te realnog i imaginarnog dijela DFT uzoraka? Skicirati kako bi izgledao niz nastao periodiziranjem postojećih $N$ uzoraka niza u vremenu. Prokomentirati.
+
+$$$$
+
+</li>
+</ol>
