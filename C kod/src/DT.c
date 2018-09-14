@@ -11,6 +11,7 @@
 /* -- Includes -- */
 
 
+
 /* libc includes. */
 #include <stdio.h> /* for file function */
 #include <stdint.h>
@@ -21,6 +22,8 @@
 #include <math.h> /* for math functions */
 
 #include "DT.h"
+
+#define U 500
 
 struct IIR * createIIR(unsigned int const N)					// Ako ce se spajati IIR filti dodati jos da prima fylterType
 {
@@ -39,7 +42,7 @@ struct IIR * createIIR(unsigned int const N)					// Ako ce se spajati IIR filti 
 
 
 	assert(NULL == ptr->coeffs);
-	ptr->coeffs = (int16_t *) malloc (N * sizeof(int16_t));
+	ptr->coeffs = (int16_t *) malloc ((2*N+5) * sizeof(int16_t));
 	assert(NULL != ptr->coeffs);
 
 	assert(NULL == ptr->state);
@@ -51,7 +54,7 @@ struct IIR * createIIR(unsigned int const N)					// Ako ce se spajati IIR filti 
 		return NULL;
 	};
 
-	memset (ptr->coeffs, 0, N * sizeof(int16_t));
+	memset (ptr->coeffs, 0, (2*N+5) * sizeof(int16_t));
 	memset (ptr->state, 0, N * sizeof(int16_t));
 
 	ptr->L = N;
@@ -64,7 +67,7 @@ void deleteIIR(struct IIR * iir)
 
 		assert(NULL != iir);
 			if (NULL == iir) return;
-
+                              
 		if (NULL != iir->coeffs) {
 			free (iir->coeffs);
 			iir->coeffs = NULL;
@@ -75,8 +78,7 @@ void deleteIIR(struct IIR * iir)
 			iir->state = NULL;
 		};
 
-		memset (iir->coeffs, 0, 0);
-		memset (iir->state, 0, 0);
+
 
 		free (iir);
 
@@ -89,20 +91,18 @@ int16_t readFirstWord(FILE *fp)
 	int16_t hex_word;
 
 	fscanf(fp,"%s%*[^\n]",word);								// Uzme prvi string u nizu.
-	hex_word = (int)strtol(word, NULL, 16);     				// String to integer.
-	printf("word read is: %hX\n", hex_word);
+	hex_word = (int)strtol(word, NULL, 16);     	
 
 	return hex_word;
 }
 
-struct IIR * getCoeffsAndInit_direct(char file_name[50]) 		// Prima naziv strukture.
+struct IIR * getCoeffsAndInit_direct(char * file_name) 		// Prima naziv strukture.
 {																// Ucitava koeficijente i inicijalizira filtar.
 
 	struct IIR * iir = NULL;
 
 	/* DIREKTNA
-	 n
-	 a
+	n
 	amp_in
 	a-ovi x n+1 od a_n do a_0
 	b-ovi x n+1 od b_n do b_0
@@ -117,7 +117,7 @@ struct IIR * getCoeffsAndInit_direct(char file_name[50]) 		// Prima naziv strukt
 
 
 	if (fp == NULL) {
-		printf("Nije uèitana datoteka s koeficijentima!!!\n");
+		printf("Nije ucitana datoteka s koeficijentima!!!\n");
 		return iir;
 		};
 	// Ucitaj red filtra
@@ -126,7 +126,7 @@ struct IIR * getCoeffsAndInit_direct(char file_name[50]) 		// Prima naziv strukt
 	iir = createIIR(N);											// Inicijalizacija filtra s dohvacenim redom N.
 
 	// Ucitaj preostale koeficijente
-	for (i = 1; i <= (2*N + 5); i++)
+	for (i = 0; i < (2*N + 5); i++)
 	{
 
 		iir->coeffs[i] = readFirstWord(fp);						// coeffs[1] = amp_in, coeffs[2] = a[N] ... coeffs[2N+4]=amp_out coeffs[2N+5]=p
@@ -141,8 +141,8 @@ void incrementStateIndex(struct IIR * iir) {
 	assert(NULL != iir);
 	if (NULL == iir) return;
 
-	int stateIndex = (iir->stateIndex + 1);			// Cirkularni spremnik velicine reda N.
-	assert((0 < stateIndex) && (stateIndex < iir->L));
+	int stateIndex = (iir->stateIndex + 1);			
+	assert((0 <= stateIndex) && (stateIndex < iir->L));
 
 	iir->stateIndex = stateIndex;
 }
@@ -154,9 +154,16 @@ void decrementStateIndex(struct IIR * iir) {
 
 	i = ((iir->stateIndex) - 1);
 
-	assert((0 < i) && (i < iir->L));
+	assert((0 <= i) && (i < iir->L));
 
 	iir->stateIndex = i;
+}
+
+void resetStateIndex(struct IIR * iir) {
+	assert(NULL != iir);
+		if (NULL == iir) return;
+
+		iir->stateIndex = 0;
 }
 
 int16_t readState(struct IIR * iir) {
@@ -168,6 +175,16 @@ int16_t readState(struct IIR * iir) {
 	assert((0 <= i) && (i < iir->L));
 
 	return (iir->state[i]);
+}
+
+int16_t readNextState(struct IIR * iir) {
+    assert(NULL != iir);
+	if (NULL == iir) return 0;
+
+	int i = iir->stateIndex;
+	assert((0 <= i) && (i < iir->L));
+
+	return (iir->state[i+1]);    
 }
 
 void writeState(int16_t input, struct IIR * iir) {
@@ -183,7 +200,7 @@ int16_t  IIRFilter_direct2_transposed(int16_t input,struct IIR * iir) {
 	int16_t y = calculateValue(input,iir);
 	updateState(input,y,iir);
 
-return y;
+	return y;
 
 }
 
@@ -191,16 +208,23 @@ int16_t calculateValue (int16_t input, struct IIR * iir) {
 	assert ( (NULL != iir) || (iir->filterType == IIR_Direct) );
 		if (NULL == iir) return 0;
 
-		int N = iir->L;												// Red filtra.
-		int16_t *coeffs_a = &(iir->coeffs[2]);
-		int16_t *coeffs_b = &(iir->coeffs[N+3]);
+		int const N = iir->L;												// Red filtra.
+		int16_t const * const coeffs_a = &(iir->coeffs[1]);
+		int16_t const * const coeffs_b = &(iir->coeffs[N+2]);
 		assert(NULL != coeffs_a || NULL != coeffs_b);
 
-		int32_t x = (int32_t)(input) * (int32_t)(iir->coeffs[1]);// input * amp_in
+		int32_t x = input;// input * amp_in
 		int32_t y = 0;
+		int16_t kul = iir->coeffs[0];
+		int16_t state = readState(iir);
 
-		int32_t zeroState = readState(iir);										// Postavi na inicijalno stanje. Na pocetku na zadnje.
-		y = (int32_t)(zeroState + x*(*(coeffs_b)));
+                int16_t p = iir->coeffs[2*N+4];
+                
+		x *= kul;
+		x = x >> 15;// Postavi na inicijalno stanje. Na pocetku na zadnje.
+		y = x * (int32_t)(coeffs_b[0]);
+                y = y >> 15;
+                y += (int32_t)(state);
 		if (*coeffs_a == 1)
 		{
 			// Ako je a0 = 1 -> pomaka udesno nema tj. dijelimo s 1.
@@ -208,64 +232,85 @@ int16_t calculateValue (int16_t input, struct IIR * iir) {
 		else if (*coeffs_a == 2) y = (int32_t) (y >> 1);		// Ako je 2 -> desni pomak je za 1 tj. dijelimo s 2.
 		else
 		{														// Inace -> pomak za potenciju.
-			y = (int32_t) (y >> (int32_t)log2((int32_t)(*coeffs_a)));
+			y *= (int32_t) (y >> (int32_t)log2((*coeffs_a)));
 		}
 
+		y *= (int32_t)(iir->coeffs[2*N+3]); // if za optimalni lijevi ili desni shift
+                
+                if(p > 15) {
+                    p = p - 15;
+                    y = y << p;
+                }
+                else if(p < 15) {
+                    p = 15 - p;
+                    y = y >> p;
+                }
 
-		//y *= (int32_t)(iir->coeffs[2*N+4]);				// Izlaz, NE VALJA, DOHVATIT KOEFICIJENT IZLAZA
-		y *= (iir->coeffs[2*N+4] << iir->coeffs[2*N+5]);
-		return (int16_t)(y >> 15);
+		return (int16_t)y;
 }
 
 void updateState(int16_t input, int16_t output, struct IIR * iir) {
 	assert ( (NULL != iir) || (iir->filterType == IIR_Direct) );
 	if (NULL == iir) return;
 
-	int N = iir->L;												// Red filtra.
-	int16_t *coeffs_a = &(iir->coeffs[2]);
-	int16_t *coeffs_b = &(iir->coeffs[N+3]);
+	int const N = iir->L;
+	int16_t const *coeffs_a = &(iir->coeffs[1]);
+	int16_t const *coeffs_b = &(iir->coeffs[N+2]);
 	assert(NULL != coeffs_a || NULL != coeffs_b);
-	int32_t currState;
-
-	for (int i = 0; i < N-2; i++)
+	int32_t currState = 0;
+        int32_t nextState = 0;
+	int i = 0;
+        int32_t temp_b = 0;
+        int32_t temp_a = 0;
+	for (; i < N-1; i++)
 		{
+			nextState = readNextState(iir);
 			coeffs_a++;coeffs_b++;
+                        temp_b = input * (*(coeffs_b));
+                        temp_a = output * (*(coeffs_a));
+			currState = (int32_t)(temp_b + temp_a);
+                        currState = currState >> 15;
+			currState = currState + nextState;
+			writeState((int16_t)currState,iir);
 			incrementStateIndex(iir);
-			int32_t nextState = readState(iir);							// 0 + stanje[N]*b[N] +....+ stanje[1]*b[1]
-			currState = nextState + *(coeffs_b)*input + *(coeffs_a)*output;
-			decrementStateIndex(iir);
-			writeState(currState,iir);
 		}
 	coeffs_a++;coeffs_b++;
-	incrementStateIndex(iir);
-	currState = *(coeffs_b)*input + *(coeffs_a)*output;
-	writeState(currState);
-
-
+        temp_b = input * (*(coeffs_b));
+        temp_a = output * (*(coeffs_a));       
+	currState = (int32_t)(temp_b + temp_a);
+	currState = currState >> 15;
+	writeState((int16_t)currState,iir);
+	resetStateIndex(iir);
 }
 
 int main() {
 	struct IIR *iir;
-	char file_coeffs[50]="words.txt";
+	char file_coeffs[51]="words.txt";
+	int i=0;
+	char word[30];
+	FILE *fp;
+	int x[U]={0};
+	int16_t y[U] = {0};
 	iir = getCoeffsAndInit_direct(file_coeffs);
 
-	int16_t x=5;
-	int16_t y = IIRFilter_direct2_transposed(x,iir);
-	printf("a3 prije = %hX \n", iir->coeffs[2]);
-	printf("a2 prije = %hX \n", iir->coeffs[3]);
-	printf("a1 prije = %hX \n", iir->coeffs[4]);
-	printf("a0 prije = %hX \n", iir->coeffs[5]);
+	fp = fopen("sin.txt", "r");
+	for(; i<U; i++) {
 
+		fscanf(fp,"%s%*[^\n]",word);
+		x[i] = (int)strtol(word, NULL, 16);
+	}
+	i=0;
+	fclose(fp);
+        fp=fopen("output.txt","w");
+	while(i<U) {
 
-	printf("kul = %hX \n", iir->coeffs[1]);
-	printf("kiz = %hX \n", iir->coeffs[10]);
-	printf("p = %hX \n", iir->coeffs[11]);
+		y[i] = IIRFilter_direct2_transposed((int16_t)x[i],iir);
+		fprintf(fp,"%d\n", y[i]);
+		i++;
 
-	printf("N = %hX ?? %d\n", iir->L, iir->coeffs[0]);
-
-	puts("\n\n  ___________1.krug:\n");
-
-
-
+	}
+        fclose(fp);
+        deleteIIR(iir);
+        
 return 0;
 }

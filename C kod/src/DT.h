@@ -58,12 +58,20 @@ struct IIR * getCoeffsAndInit_direct(char file_name[50]);
 void writeState(int16_t input, struct IIR * iir);
 /** @brief Reads state on the given memory location
  *
- *Firstly, we check if filter exists, if not, we return 0. Otherwise we save value of stateIndex in varlable i and return the value of state on that given memory location.
+ *Firstly, we check if filter exists, if not, we return 0. Otherwise we save value of stateIndex in variable i and return the value of state on that given memory location.
  *
  *  @param iir filter structure
  *  @return value of state
  */
 int16_t readState(struct IIR * iir);
+/** @brief Reads state on the given memory location
+ *
+ *Firstly, we check if filter exists, if not, we return 0. Otherwise we save value of stateIndex in variable i and return the value of the next state on that given memory location.
+ *
+ *  @param iir filter structure
+ *  @return value of state
+ */
+int16_t readNextState(struct IIR * iir);
 /** @brief decrements value of state index to point on previous state
  *
  *We check if the structure is empty. If not, we put decremented value of stateIndex in stateIndex.
